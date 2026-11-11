@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/* Class-based dark mode (toggled by ThemeContext via `.dark` on <html>), instead of
+   Tailwind v4's default `prefers-color-scheme` strategy — the site needs a manual toggle. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Dark institutional navy — hero/section backgrounds */
+  --color-navy-50: #eef2f9;
+  --color-navy-100: #d7e0ee;
+  --color-navy-200: #b0c1dd;
+  --color-navy-300: #7e99c4;
+  --color-navy-400: #4d6da3;
+  --color-navy-500: #2e4a7d;
+  --color-navy-600: #1e3a8a;
+  --color-navy-700: #152a63;
+  --color-navy-800: #0d1b3e;
+  --color-navy-900: #0a1628;
+  --color-navy-950: #05070f;
+
+  /* Primary action blue */
+  --color-brand-50: #eaf4fc;
+  --color-brand-100: #cfe6f7;
+  --color-brand-200: #9fcdef;
+  --color-brand-300: #6bb0e4;
+  --color-brand-400: #3e93d8;
+  --color-brand-500: #2277c2;
+  --color-brand-600: #0056a3;
+  --color-brand-700: #004380;
+  --color-brand-800: #033761;
+  --color-brand-900: #062748;
+
+  /* Orange accent (secondary CTA / highlight) */
+  --color-accent-400: #ff9143;
+  --color-accent-500: #ff6b00;
+  --color-accent-600: #db5800;
+
+  /* Emergency red — reserved for the Dial 112 CTA only */
+  --color-emergency-400: #f2495c;
+  --color-emergency-500: #e11d2e;
+  --color-emergency-600: #b8121f;
+
+  /* Positive / success stat green */
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-navy-900 antialiased transition-colors duration-300 font-sans dark:bg-navy-950 dark:text-navy-50;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+
+  /* Non-Latin locales render better in a script-native face than the Outfit/Inter pairing —
+     override both body copy and headings (which otherwise force font-display/Outfit). */
+  html[lang="hi"] body, html[lang="hi"] h1, html[lang="hi"] h2, html[lang="hi"] h3, html[lang="hi"] h4 {
+    font-family: "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
+  }
+  html[lang="te"] body, html[lang="te"] h1, html[lang="te"] h2, html[lang="te"] h3, html[lang="te"] h4 {
+    font-family: "Noto Sans Telugu", ui-sans-serif, system-ui, sans-serif;
+  }
+  html[lang="gu"] body, html[lang="gu"] h1, html[lang="gu"] h2, html[lang="gu"] h3, html[lang="gu"] h4 {
+    font-family: "Noto Sans Gujarati", ui-sans-serif, system-ui, sans-serif;
+  }
+  html[lang="ur"] body, html[lang="ur"] h1, html[lang="ur"] h2, html[lang="ur"] h3, html[lang="ur"] h4 {
+    font-family: "Noto Nastaliq Urdu", ui-sans-serif, system-ui, sans-serif;
+  }
+  html[lang="sd"] body, html[lang="sd"] h1, html[lang="sd"] h2, html[lang="sd"] h3, html[lang="sd"] h4 {
+    font-family: "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
