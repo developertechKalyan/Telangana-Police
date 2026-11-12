@@ -36,7 +36,11 @@ export interface ApiGalleryItem {
   createdAt: string;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+// Use localhost only during local development. On the live site, never call
+// localhost — browsers show a "wants to access other apps and services on this
+// device" permission prompt when a public page requests the visitor's own machine.
+const API_BASE =
+  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:8000/api" : "/api");
 
 function getAuthHeaders(isJson: boolean = true): HeadersInit {
   const token = localStorage.getItem("mppolice_auth_token");
