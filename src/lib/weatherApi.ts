@@ -61,7 +61,9 @@ export interface WeatherPayload {
   daily: LiveDailyReading[];
 }
 
-const API_BASE = import.meta.env.VITE_WEATHER_API_URL ?? "http://localhost:8000";
+// Same as api.ts: localhost only in development, never on the live site.
+const API_BASE =
+  import.meta.env.VITE_WEATHER_API_URL ?? (import.meta.env.DEV ? "http://localhost:8000" : "");
 
 export async function fetchWeather(): Promise<WeatherPayload> {
   const res = await fetch(`${API_BASE}/api/weather`);
