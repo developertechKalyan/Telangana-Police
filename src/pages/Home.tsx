@@ -46,6 +46,7 @@ import { useT } from "@/contexts/LanguageContext";
 import { ui } from "@/i18n/ui";
 
 import policeLogo from "@/assets/logo.png";
+import heroVideo from "@/assets/videos/English_Dial 112_Sub_01.mp4";
 
 const impactIcons = [FaShieldHalved, FaCarBurst, FaChildReaching, FaPersonCircleExclamation];
 
@@ -134,117 +135,43 @@ function DailyStatRow({ stat }: { stat: (typeof dailyStats)[number] }) {
   );
 }
 
-const HERO_YOUTUBE_ID = "reBZ9QIMcug";
-
-interface YouTubePlayer {
-  mute(): void;
-  unMute(): void;
-  isMuted(): boolean;
-  playVideo(): void;
-}
-
-interface YouTubePlayerEvent {
-  target: YouTubePlayer;
-  data?: number;
-}
-
-interface YouTubeNamespace {
-  Player: new (
-    element: HTMLElement,
-    options: {
-      videoId: string;
-      playerVars?: Record<string, number | string>;
-      events?: {
-        onReady?: (event: YouTubePlayerEvent) => void;
-        onError?: (event: YouTubePlayerEvent) => void;
-      };
-    },
-  ) => YouTubePlayer;
-}
-
-declare global {
-  interface Window {
-    YT?: YouTubeNamespace;
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
-
-function loadYouTubeIframeApi(): Promise<YouTubeNamespace> {
-  if (window.YT) return Promise.resolve(window.YT);
-  return new Promise((resolve) => {
-    const previousCallback = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      previousCallback?.();
-      if (window.YT) resolve(window.YT);
-    };
-    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
-      const script = document.createElement("script");
-      script.src = "https://www.youtube.com/iframe_api";
-      document.head.appendChild(script);
-    }
-  });
-}
-
 function VideoHero() {
   const t = useT();
-  const playerHostRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<YouTubePlayer | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
   const [videoFailed, setVideoFailed] = useState(false);
 
+  // React doesn't reliably apply the `muted` attribute, and browsers block
+  // autoplay unless the video is muted, so set it on the element directly.
   useEffect(() => {
-    let cancelled = false;
-    loadYouTubeIframeApi().then((YT) => {
-      if (cancelled || !playerHostRef.current) return;
-      playerRef.current = new YT.Player(playerHostRef.current, {
-        videoId: HERO_YOUTUBE_ID,
-        playerVars: {
-          autoplay: 1,
-          mute: 1,
-          loop: 1,
-          playlist: HERO_YOUTUBE_ID,
-          controls: 0,
-          modestbranding: 1,
-          rel: 0,
-          playsinline: 1,
-          iv_load_policy: 3,
-          disablekb: 1,
-        },
-        events: {
-          onReady: (event) => {
-            event.target.mute();
-            event.target.playVideo();
-          },
-          onError: () => setVideoFailed(true),
-        },
-      });
-    });
-    return () => {
-      cancelled = true;
-    };
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.play().catch(() => {});
   }, []);
 
   const toggleMute = () => {
-    const player = playerRef.current;
-    if (!player) return;
-    if (player.isMuted()) {
-      player.unMute();
-      setMuted(false);
-    } else {
-      player.mute();
-      setMuted(true);
-    }
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setMuted(video.muted);
+    if (!video.muted) video.play().catch(() => {});
   };
 
   return (
-    <section className="relative h-screen overflow-hidden bg-navy-900 ">
+    <section className="relative h-screen overflow-hidden bg-navy-900">
       {!videoFailed && (
-        <div className="absolute inset-0 overflow-hidden">
-          <div
-            ref={playerHostRef}
-            className="pointer-events-none absolute top-1/2 left-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2"
-          />
-        </div>
+        <video
+          ref={videoRef}
+          src={heroVideo}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          onError={() => setVideoFailed(true)}
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-navy-950/90 via-navy-950/30 to-navy-950/50" />
 
