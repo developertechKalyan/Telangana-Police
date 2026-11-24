@@ -22,7 +22,8 @@ import {
   FaComment,
 } from "react-icons/fa6";
 import { LuHistory, LuFlag, LuSiren, LuTrendingUp, LuRocket, LuClock, LuMapPin, LuCalendarDays } from "react-icons/lu";
-import { MotionSection, StaggerGroup, staggerItem } from "@/components/MotionSection";
+import { MotionSection, StaggerGroup } from "@/components/MotionSection";
+import { staggerItem } from "@/components/motionVariants";
 import { Accordion } from "@/components/ui/Accordion";
 import { useCountUp } from "@/hooks/useCountUp";
 import { aboutStats } from "@/data/stats";

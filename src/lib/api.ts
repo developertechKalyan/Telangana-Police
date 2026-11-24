@@ -36,11 +36,7 @@ export interface ApiGalleryItem {
   createdAt: string;
 }
 
-// Use localhost only during local development. On the live site, never call
-// localhost — browsers show a "wants to access other apps and services on this
-// device" permission prompt when a public page requests the visitor's own machine.
-const API_BASE =
-  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:8000/api" : "/api");
+import { API_BASE } from "@/lib/apiBase";
 
 function getAuthHeaders(isJson: boolean = true): HeadersInit {
   const token = localStorage.getItem("mppolice_auth_token");
@@ -54,70 +50,73 @@ function getAuthHeaders(isJson: boolean = true): HeadersInit {
   return headers;
 }
 
+/**
+ * Calls the API and returns its JSON. Throws a readable error when the server is unreachable or
+ * answers with something that isn't JSON (e.g. a web page because no API server is configured).
+ */
+async function request<T>(path: string, init: RequestInit, fallbackError: string): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, init);
+  } catch {
+    throw new Error("Can't reach the server. Check your connection and try again.");
+  }
+  const isJson = (res.headers.get("content-type") || "").includes("application/json");
+  const data = isJson ? await res.json().catch(() => null) : null;
+  if (!data) {
+    throw new Error(
+      res.status === 404 || !isJson ? "The server for this feature is not available right now." : fallbackError
+    );
+  }
+  if (!res.ok) throw new Error(data.message || fallbackError);
+  return data as T;
+}
+
 // Auth API Calls
 export async function loginApi(email: string, password: string):Promise<{ success: boolean; token: string; user: ApiUser; message?: string }> {
-  const res = await fetch(`${API_BASE}/auth/login`, {
+  return request(`/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Failed to log in");
-  return data;
+  }, "Failed to log in");
 }
 
 export async function forgotPasswordApi(email: string): Promise<{ success: boolean; message: string }> {
-  const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+  return request(`/auth/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Failed to dispatch reset code");
-  return data;
+  }, "Failed to dispatch reset code");
 }
 
 export async function verifyOtpApi(email: string, otp: string): Promise<{ success: boolean; message: string }> {
-  const res = await fetch(`${API_BASE}/auth/verify-otp`, {
+  return request(`/auth/verify-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, otp }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Invalid or expired OTP");
-  return data;
+  }, "Invalid or expired OTP");
 }
 
 export async function resetPasswordApi(email: string, otp: string, newPassword: string): Promise<{ success: boolean; token: string; user: ApiUser; message: string }> {
-  const res = await fetch(`${API_BASE}/auth/reset-password`, {
+  return request(`/auth/reset-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, otp, newPassword }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Failed to reset password");
-  return data;
+  }, "Failed to reset password");
 }
 
 export async function getMeApi(): Promise<{ success: boolean; user: ApiUser }> {
-  const res = await fetch(`${API_BASE}/auth/me`, {
+  return request(`/auth/me`, {
     headers: getAuthHeaders(),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Unauthorized");
-  return data;
+  }, "Unauthorized");
 }
 
 // Gallery API Calls
 export async function fetchGalleryItems(category?: string): Promise<ApiGalleryItem[]> {
   try {
-    const url = new URL(`${API_BASE}/gallery`);
-    if (category && category !== "All") {
-      url.searchParams.set("category", category);
-    }
-    const res = await fetch(url.toString());
-    if (!res.ok) return [];
-    const data = await res.json();
+    // Works for both absolute (https://api.example/api) and relative (/api) bases.
+    const qs = category && category !== "All" ? `?${new URLSearchParams({ category })}` : "";
+    const data = await request<{ data?: ApiGalleryItem[] }>(`/gallery${qs}`, {}, "Failed to load gallery");
     return data.data || [];
   } catch (error) {
     console.warn("Could not reach Gallery API:", error);
@@ -126,33 +125,24 @@ export async function fetchGalleryItems(category?: string): Promise<ApiGalleryIt
 }
 
 export async function uploadGalleryItemApi(formData: FormData): Promise<{ success: boolean; data: ApiGalleryItem; message: string }> {
-  const res = await fetch(`${API_BASE}/gallery`, {
+  return request(`/gallery`, {
     method: "POST",
     headers: getAuthHeaders(false), // No Content-Type for FormData
     body: formData,
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Failed to upload image");
-  return data;
+  }, "Failed to upload image");
 }
 
 export async function uploadBulkGalleryItemsApi(formData: FormData): Promise<{ success: boolean; data: ApiGalleryItem[]; message: string; count: number }> {
-  const res = await fetch(`${API_BASE}/gallery/bulk`, {
+  return request(`/gallery/bulk`, {
     method: "POST",
     headers: getAuthHeaders(false), // No Content-Type for FormData
     body: formData,
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Failed to upload batch images");
-  return data;
+  }, "Failed to upload batch images");
 }
 
 export async function deleteGalleryItemApi(id: string): Promise<{ success: boolean; message: string }> {
-  const res = await fetch(`${API_BASE}/gallery/${id}`, {
+  return request(`/gallery/${id}`, {
     method: "DELETE",
     headers: getAuthHeaders(),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Failed to delete gallery item");
-  return data;
+  }, "Failed to delete gallery item");
 }

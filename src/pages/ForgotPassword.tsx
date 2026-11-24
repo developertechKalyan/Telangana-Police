@@ -122,8 +122,13 @@ export function ForgotPassword() {
   // Step 3: Reset Password
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters long.");
+    // Same rule as the server (backend/src/config/security.ts → passwordProblem).
+    if (newPassword.length < 12) {
+      setError("Password must be at least 12 characters long.");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      setError("Password must include upper-case and lower-case letters and a number.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -272,7 +277,7 @@ export function ForgotPassword() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@mppolice.gov.in"
+                  placeholder="admin@tspolice.gov.in"
                   className="w-full rounded-xl border border-navy-700 bg-navy-950/80 py-3 pl-10 pr-4 text-sm text-white placeholder-navy-500 transition-colors focus:border-accent-400 focus:bg-navy-950 focus:outline-none focus:ring-1 focus:ring-accent-400"
                 />
               </div>
@@ -374,7 +379,7 @@ export function ForgotPassword() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  minLength={8}
+                  minLength={12}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••••••"
@@ -415,7 +420,7 @@ export function ForgotPassword() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  minLength={8}
+                  minLength={12}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••••••"

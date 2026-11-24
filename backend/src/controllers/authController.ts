@@ -4,11 +4,57 @@ import crypto from "crypto";
 import { User } from "../models/User.js";
 import { sendOtpEmail } from "../config/mailer.js";
 import type { AuthRequest } from "../middleware/auth.js";
+import { getJwtSecret, hashOtp, passwordProblem, safeEqualHex } from "../config/security.js";
+
+/** Wrong reset-code guesses allowed per issued code before it is voided. */
+const MAX_OTP_ATTEMPTS = 5;
+const OTP_TTL_MS = 10 * 60 * 1000;
+
+/** Same reply whether or not the email is registered, so the form can't be used to discover accounts. */
+const FORGOT_PASSWORD_REPLY = "If this email is registered, a 6-digit verification code has been sent to it.";
+const INVALID_OTP_REPLY = "Invalid or expired verification code. Please request a new one.";
 
 function generateToken(id: string): string {
-  const secret = process.env.JWT_SECRET || "mp_police_super_secure_jwt_secret_key_2026_!@#$%^";
   const expiresIn = (process.env.JWT_EXPIRES_IN || "7d") as jwt.SignOptions["expiresIn"];
-  return jwt.sign({ id }, secret, { expiresIn });
+  return jwt.sign({ id }, getJwtSecret(), { expiresIn, algorithm: "HS256" });
+}
+
+/** Reads a required string field from the body; rejects objects such as {"$ne": ""}. */
+function str(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value : null;
+}
+
+function normaliseEmail(value: unknown): string | null {
+  const email = str(value)?.trim().toLowerCase() ?? null;
+  return email && email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
+}
+
+/**
+ * Checks a reset code for this email. Counts wrong guesses and voids the code after MAX_OTP_ATTEMPTS,
+ * so the 6-digit code can't be brute-forced. Returns the user when the code is right.
+ */
+async function checkOtp(email: string, otp: string) {
+  const user = await User.findOne({ email }).select(
+    "+password +resetPasswordOtp +resetPasswordExpires +resetPasswordAttempts"
+  );
+  if (!user || !user.resetPasswordOtp || !user.resetPasswordExpires || user.resetPasswordExpires.getTime() <= Date.now()) {
+    return null;
+  }
+
+  if (safeEqualHex(hashOtp(otp), user.resetPasswordOtp)) {
+    return user;
+  }
+
+  const attempts = (user.resetPasswordAttempts ?? 0) + 1;
+  if (attempts >= MAX_OTP_ATTEMPTS) {
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordExpires = undefined;
+    user.resetPasswordAttempts = 0;
+  } else {
+    user.resetPasswordAttempts = attempts;
+  }
+  await user.save({ validateBeforeSave: false });
+  return null;
 }
 
 // @desc    Admin Police Portal Login
@@ -16,7 +62,8 @@ function generateToken(id: string): string {
 // @access  Public
 export async function login(req: Request, res: Response): Promise<void> {
   try {
-    const { email, password } = req.body;
+    const email = normaliseEmail(req.body?.email);
+    const password = str(req.body?.password);
 
     if (!email || !password) {
       res.status(400).json({
@@ -26,35 +73,17 @@ export async function login(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    const user = await User.findOne({ email: cleanEmail }).select("+password");
+    const user = await User.findOne({ email }).select("+password");
 
-    if (!user) {
+    // One message for every failure, so the form doesn't reveal which emails have accounts.
+    if (!user || !user.isActive || !(await user.comparePassword(password))) {
       res.status(401).json({
         success: false,
-        message: "Invalid credentials. Authorized personnel only.",
+        message: "Invalid email or password.",
       });
       return;
     }
 
-    if (!user.isActive) {
-      res.status(403).json({
-        success: false,
-        message: "Your authorized account has been suspended or deactivated.",
-      });
-      return;
-    }
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      res.status(401).json({
-        success: false,
-        message: "Invalid credentials. Please verify your password.",
-      });
-      return;
-    }
-
-    // Update last login timestamp
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
 
@@ -86,43 +115,29 @@ export async function login(req: Request, res: Response): Promise<void> {
 // @access  Public
 export async function forgotPassword(req: Request, res: Response): Promise<void> {
   try {
-    const { email } = req.body;
+    const email = normaliseEmail(req.body?.email);
 
     if (!email) {
       res.status(400).json({
         success: false,
-        message: "Please enter your authorized email address.",
+        message: "Please enter a valid email address.",
       });
       return;
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    const user = await User.findOne({ email: cleanEmail });
+    const user = await User.findOne({ email });
 
-    if (!user) {
-      // Don't leak if email exists or not, but return consistent message
-      res.status(200).json({
-        success: true,
-        message: "If this email is registered, a 6-digit OTP verification code has been dispatched.",
-      });
-      return;
+    if (user && user.isActive) {
+      const otp = crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
+      user.resetPasswordOtp = hashOtp(otp); // only the hash is stored
+      user.resetPasswordExpires = new Date(Date.now() + OTP_TTL_MS);
+      user.resetPasswordAttempts = 0;
+      await user.save({ validateBeforeSave: false });
+
+      await sendOtpEmail(user.email, otp, user.name);
     }
 
-    // Generate secure 6-digit OTP
-    const otp = crypto.randomInt(100000, 999999).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-
-    user.resetPasswordOtp = otp;
-    user.resetPasswordExpires = otpExpiry;
-    await user.save({ validateBeforeSave: false });
-
-    // Send email using Brevo Nodemailer
-    await sendOtpEmail(user.email, otp, user.name);
-
-    res.status(200).json({
-      success: true,
-      message: `A 6-digit verification code has been sent to ${user.email}.`,
-    });
+    res.status(200).json({ success: true, message: FORGOT_PASSWORD_REPLY });
   } catch (error) {
     console.error("Forgot password error:", error);
     res.status(500).json({
@@ -137,42 +152,32 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
 // @access  Public
 export async function verifyOtp(req: Request, res: Response): Promise<void> {
   try {
-    const { email, otp } = req.body;
+    const email = normaliseEmail(req.body?.email);
+    const otp = str(req.body?.otp)?.trim() ?? (typeof req.body?.otp === "number" ? String(req.body.otp) : null);
 
-    if (!email || !otp) {
+    if (!email || !otp || !/^\d{6}$/.test(otp)) {
       res.status(400).json({
         success: false,
-        message: "Email and OTP verification code are required.",
+        message: "Email and the 6-digit verification code are required.",
       });
       return;
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanOtp = otp.toString().trim();
-
-    const user = await User.findOne({
-      email: cleanEmail,
-      resetPasswordOtp: cleanOtp,
-      resetPasswordExpires: { $gt: new Date() },
-    }).select("+resetPasswordOtp +resetPasswordExpires");
-
+    const user = await checkOtp(email, otp);
     if (!user) {
-      res.status(400).json({
-        success: false,
-        message: "Invalid or expired OTP verification code.",
-      });
+      res.status(400).json({ success: false, message: INVALID_OTP_REPLY });
       return;
     }
 
     res.status(200).json({
       success: true,
-      message: "OTP verified successfully. You may now set your new password.",
+      message: "Code verified. You may now set your new password.",
     });
   } catch (error) {
     console.error("Verify OTP error:", error);
     res.status(500).json({
       success: false,
-      message: "Error verifying OTP code.",
+      message: "Error verifying the code.",
     });
   }
 }
@@ -182,45 +187,36 @@ export async function verifyOtp(req: Request, res: Response): Promise<void> {
 // @access  Public
 export async function resetPassword(req: Request, res: Response): Promise<void> {
   try {
-    const { email, otp, newPassword } = req.body;
+    const email = normaliseEmail(req.body?.email);
+    const otp = str(req.body?.otp)?.trim() ?? (typeof req.body?.otp === "number" ? String(req.body.otp) : null);
+    const newPassword = req.body?.newPassword;
 
-    if (!email || !otp || !newPassword) {
+    if (!email || !otp || !/^\d{6}$/.test(otp) || newPassword === undefined) {
       res.status(400).json({
         success: false,
-        message: "Email, OTP code, and new password are required.",
+        message: "Email, the 6-digit code and a new password are required.",
       });
       return;
     }
 
-    if (newPassword.length < 8) {
-      res.status(400).json({
-        success: false,
-        message: "Password must be at least 8 characters long.",
-      });
+    const problem = passwordProblem(newPassword);
+    if (problem) {
+      res.status(400).json({ success: false, message: problem });
       return;
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanOtp = otp.toString().trim();
-
-    const user = await User.findOne({
-      email: cleanEmail,
-      resetPasswordOtp: cleanOtp,
-      resetPasswordExpires: { $gt: new Date() },
-    }).select("+password +resetPasswordOtp +resetPasswordExpires");
-
+    const user = await checkOtp(email, otp);
     if (!user) {
-      res.status(400).json({
-        success: false,
-        message: "Invalid or expired OTP verification code. Please request a new one.",
-      });
+      res.status(400).json({ success: false, message: INVALID_OTP_REPLY });
       return;
     }
 
-    // Set new password (will be hashed by pre-save hook)
+    // Set new password (hashed by the pre-save hook, which also records passwordChangedAt
+    // so every older login token stops working).
     user.password = newPassword;
     user.resetPasswordOtp = undefined;
     user.resetPasswordExpires = undefined;
+    user.resetPasswordAttempts = 0;
     await user.save();
 
     const token = generateToken(user._id.toString());
@@ -267,7 +263,7 @@ export async function getMe(req: AuthRequest, res: Response): Promise<void> {
         lastLogin: req.user.lastLogin,
       },
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ success: false, message: "Error fetching profile" });
   }
 }

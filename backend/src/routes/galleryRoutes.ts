@@ -6,7 +6,7 @@ import {
   uploadBulkGalleryItems,
   deleteGalleryItem,
 } from "../controllers/galleryController.js";
-import { protect } from "../middleware/auth.js";
+import { protect, requireRole } from "../middleware/auth.js";
 import { upload } from "../middleware/upload.js";
 
 const router = Router();
@@ -22,7 +22,7 @@ router.post("/", protect, upload.single("image"), uploadGalleryItem);
 // Bulk images upload (up to 20 images in one batch, max 2MB each)
 router.post("/bulk", protect, upload.array("images", 20), uploadBulkGalleryItems);
 
-// Delete any gallery image
-router.delete("/:id", protect, deleteGalleryItem);
+// Delete any gallery image (admins only; officers can upload but not delete)
+router.delete("/:id", protect, requireRole("admin", "superadmin"), deleteGalleryItem);
 
 export default router;

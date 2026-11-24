@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { IconType } from "react-icons";
 import { FaMagnifyingGlass, FaCarBurst } from "react-icons/fa6";
 import { LuUsers, LuShieldAlert, LuCar, LuSiren, LuClock, LuListChecks, LuMapPin } from "react-icons/lu";
-import { MotionSection, StaggerGroup, staggerItem } from "@/components/MotionSection";
+import { MotionSection, StaggerGroup } from "@/components/MotionSection";
+import { staggerItem } from "@/components/motionVariants";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { services, serviceCategories } from "@/data/services";
 import type { ServiceCategory } from "@/types/content";
@@ -90,12 +91,12 @@ const HERO_TITLE: LocalizedText = {
 };
 
 const HERO_SUBTITLE: LocalizedText = {
-  en: "Comprehensive emergency services across Telangana, ensuring rapid response and community safety in all states.",
-  hi: "तेलंगाना भर में व्यापक आपातकालीन सेवाएं, सभी राज्यों में तीव्र प्रतिक्रिया और सामुदायिक सुरक्षा सुनिश्चित करना।",
-  te: "తెలంగాణ అంతటా సమగ్ర అత్యవసర సేవలు, అన్ని రాష్ట్రాల్లో వేగవంతమైన స్పందన మరియు సామాజిక భద్రతను నిర్ధారిస్తూ.",
-  gu: "તેલંગાણામાં વ્યાપક કટોકટી સેવાઓ, તમામ રાજ્યોમાં ઝડપી પ્રતિભાવ અને સામુદાયિક સલામતી સુનિશ્ચિત કરવી.",
-  ur: "تلنگانہ بھر میں جامع ایمرجنسی خدمات، تمام ریاستوں میں تیز رفتار ردعمل اور کمیونٹی سیفٹی کو یقینی بنانا۔",
-  sd: "تلنگانا ۾ جامع ايمرجنسي خدمتون، سمورين رياستن ۾ تڪڙو ردعمل ۽ ڪميونٽي حفاظت کي يقيني بڻائڻ.",
+  en: "Comprehensive emergency services across Telangana, ensuring rapid response and community safety in all 33 districts.",
+  hi: "तेलंगाना भर में व्यापक आपातकालीन सेवाएं, सभी 33 ज़िलों में तीव्र प्रतिक्रिया और सामुदायिक सुरक्षा सुनिश्चित करना।",
+  te: "తెలంగాణ అంతటా సమగ్ర అత్యవసర సేవలు, అన్ని 33 జిల్లాల్లో వేగవంతమైన స్పందన మరియు సామాజిక భద్రతను నిర్ధారిస్తూ.",
+  gu: "તેલંગાણામાં વ્યાપક કટોકટી સેવાઓ, તમામ 33 જિલ્લાઓમાં ઝડપી પ્રતિભાવ અને સામુદાયિક સલામતી સુનિશ્ચિત કરવી.",
+  ur: "تلنگانہ بھر میں جامع ایمرجنسی خدمات، تمام 33 اضلاع میں تیز رفتار ردعمل اور کمیونٹی سیفٹی کو یقینی بنانا۔",
+  sd: "تلنگانا ۾ جامع ايمرجنسي خدمتون، سڀني 33 ضلعن ۾ تڪڙو ردعمل ۽ ڪميونٽي حفاظت کي يقيني بڻائڻ.",
 };
 
 const STAT_RESPONSE_TIME: LocalizedText = {
@@ -153,12 +154,12 @@ const CTA_TITLE: LocalizedText = {
 };
 
 const CTA_BODY: LocalizedText = {
-  en: "Our teams are on standby, 24 × 7, across all states.",
-  hi: "हमारी टीमें सभी राज्यों में 24×7 तैयार हैं।",
-  te: "మా బృందాలు అన్ని రాష్ట్రాల్లో 24×7 సిద్ధంగా ఉన్నాయి.",
-  gu: "અમારી ટીમો તમામ રાજ્યોમાં 24×7 તૈયાર છે.",
-  ur: "ہماری ٹیمیں تمام ریاستوں میں 24×7 تیار ہیں۔",
-  sd: "اسان جون ٽيمون سمورين رياستن ۾ 24×7 تيار آهن.",
+  en: "Our teams are on standby, 24 × 7, across all 33 districts of Telangana.",
+  hi: "हमारी टीमें सभी 33 ज़िलों में 24×7 तैयार हैं।",
+  te: "మా బృందాలు అన్ని 33 జిల్లాల్లో 24×7 సిద్ధంగా ఉన్నాయి.",
+  gu: "અમારી ટીમો તમામ 33 જિલ્લાઓમાં 24×7 તૈયાર છે.",
+  ur: "ہماری ٹیمیں تمام 33 اضلاع میں 24×7 تیار ہیں۔",
+  sd: "اسان جون ٽيمون سڀني 33 ضلعن ۾ 24×7 تيار آهن.",
 };
 
 export function Services() {

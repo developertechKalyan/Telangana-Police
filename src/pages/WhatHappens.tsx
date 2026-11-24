@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { FaRoute, FaCircleCheck, FaCircleXmark } from "react-icons/fa6";
-import { MotionSection, StaggerGroup, staggerItem } from "@/components/MotionSection";
+import { MotionSection, StaggerGroup } from "@/components/MotionSection";
+import { staggerItem } from "@/components/motionVariants";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { Timeline } from "@/components/ui/Timeline";
 import { journeySteps, doDonts } from "@/data/journeySteps";

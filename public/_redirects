@@ -1,1 +1,8 @@
-/*    /index.html   200
+# API requests must never be answered with the website's index.html.
+# The site calls the API at VITE_API_URL (set in Netlify → Site settings → Environment variables).
+# To serve the API through this domain instead, replace the /api line with a proxy rule:
+#   /api/*  https://YOUR-API-HOST/api/:splat  200
+/api/*  /api-unavailable.json  404
+
+# Every other path is a page of the single-page app (/gallery, /contact, ...), so refreshes work.
+/*      /index.html  200

@@ -27,14 +27,16 @@ export const contactInfo = {
     ur: "خواتین کی حفاظت کی ہیلپ لائن",
     sd: "عورتن جي حفاظت جي هيلپ لائين",
   } as LocalizedText,
-  firePhone: "102",
-  email: "112.tspolice.gov.in",
+  firePhone: "101",
+  // Official public email for Dial 112. Leave empty until TGiCCC confirms the address:
+  // while empty, every email link and row on the site is hidden instead of showing a broken link.
+  email: "",
   availability: {
-    en: "24 × 7 — All States",
-    hi: "24 × 7 — सभी राज्य",
-    te: "24 × 7 — అన్ని రాష్ట్రాలు",
-    gu: "24 × 7 — તમામ રાજ્યો",
-    ur: "24 × 7 — تمام ریاستیں",
-    sd: "24 × 7 — سموريون رياستون",
+    en: "24 × 7 — All 33 districts of Telangana",
+    hi: "24 × 7 — तेलंगाना के सभी 33 ज़िले",
+    te: "24 × 7 — తెలంగాణలోని అన్ని 33 జిల్లాలు",
+    gu: "24 × 7 — તેલંગાણાના તમામ 33 જિલ્લા",
+    ur: "24 × 7 — تلنگانہ کے تمام 33 اضلاع",
+    sd: "24 × 7 — تلنگانا جا سڀ 33 ضلعا",
   } as LocalizedText,
 };

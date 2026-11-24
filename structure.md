@@ -1,5 +1,9 @@
 # structure.md — Site Audit: dial112.mppolice.gov.in
 
+> **Status note (2026-11-13):** this is the audit of the original **Madhya Pradesh** Dial 112 site that the
+> project started from. It is kept for reference only. The live content is now Telangana's — for the current
+> page list and state read `handoff.md`; for content direction read `TG_ERSS_Dial112_Website_Content_Ideas_v1-0.docx`.
+
 > Source of truth for WHAT we are rebuilding. This is a content/structure/functionality inventory of the live government site, captured 2026-07-24. Do not re-crawl the live site unless a gap is found here — extend this file instead.
 
 Original stack (reference only, we are NOT reusing this): static PHP pages (`index.php`, `about.php`, `services.php`, `story.php`, `dialnews.php`, `Gallery.php`, `contact.php`, `weather.php`, detail pages `news_details.php?id=`, `dialnews_details.php?id=`), custom `styles.css`, Font Awesome + Tabler icon webfonts, Google Fonts (Outfit, Rajdhani, DM Sans, JetBrains Mono, Exo 2), Chart.js for the weather graph, Google Analytics (gtag).

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaShieldHalved,
@@ -27,11 +27,8 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // If already authenticated, redirect to admin gallery
-  const from = (location.state as any)?.from?.pathname || "/admin/gallery";
-  if (isAuthenticated) {
-    navigate(from, { replace: true });
-  }
+  // Where to go after logging in (the protected page that sent the visitor here, else the admin gallery).
+  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || "/admin/gallery";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +49,12 @@ export function Login() {
       setLoading(false);
     }
   };
+
+  // Already logged in: redirect declaratively. Calling navigate() while rendering caused an endless
+  // update loop (React error #185) right after a successful login.
+  if (isAuthenticated) {
+    return <Navigate to={from} replace />;
+  }
 
   return (
     <div className="relative min-h-[85vh] flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
@@ -121,7 +124,7 @@ export function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="officer@mppolice.gov.in"
+                placeholder="officer@tspolice.gov.in"
                 autoComplete="email"
                 className="w-full rounded-xl border border-navy-700 bg-navy-950/80 py-3 pl-10 pr-4 text-sm text-white placeholder-navy-500 transition-colors focus:border-accent-400 focus:bg-navy-950 focus:outline-none focus:ring-1 focus:ring-accent-400"
               />

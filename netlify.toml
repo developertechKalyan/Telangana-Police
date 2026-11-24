@@ -3,10 +3,8 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # Vite 8 needs Node 20.19+ or 22.12+
+  NODE_VERSION = "22"
+  # Set VITE_API_URL (e.g. https://api.example.gov.in/api) in the Netlify UI, not here.
 
-# Lets React Router pages (e.g. /reach-us, /gallery) work on refresh
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Redirect rules live in public/_redirects (API rule first, then the single-page-app fallback).

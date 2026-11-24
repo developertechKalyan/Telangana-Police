@@ -61,14 +61,14 @@ export interface WeatherPayload {
   daily: LiveDailyReading[];
 }
 
-// Same as api.ts: localhost only in development, never on the live site.
-const API_BASE =
-  import.meta.env.VITE_WEATHER_API_URL ?? (import.meta.env.DEV ? "http://localhost:8000" : "");
+import { API_BASE } from "@/lib/apiBase";
 
+// Weather is served by the same Node API as login and gallery (backend/src/routes/weatherRoutes.ts).
 export async function fetchWeather(): Promise<WeatherPayload> {
-  const res = await fetch(`${API_BASE}/api/weather`);
-  if (!res.ok) {
-    throw new Error(`Weather API responded with ${res.status}`);
+  const res = await fetch(`${API_BASE}/weather`);
+  const isJson = (res.headers.get("content-type") || "").includes("application/json");
+  if (!res.ok || !isJson) {
+    throw new Error("Live weather data is not available right now.");
   }
   return res.json();
 }

@@ -25,13 +25,17 @@ dist-ssr
 # Claude files
 .claude
 .claude/
-# Markdown files
-brain.md
-handoff.md
-structure.md
+# Python
+__pycache__/
+*.pyc
+.venv/
 
-# Large videos
-src/assets/*.mp4
-src/assets/*.mov
-src/assets/*.avi
-src/assets/*.webm
+# Videos: the hero videos in src/assets/videos/ ARE needed by the build (Home imports them),
+# so they stay in git. Only keep raw, unused source footage out of the repo:
+src/assets/raw/
+
+# Secrets: never commit real settings files
+.env
+.env.*
+!.env.example
+backend/.env

@@ -5,7 +5,7 @@ import { LuSignal, LuWifi, LuBatteryFull } from "react-icons/lu";
 import { DotGridPattern, RadarSweepPattern } from "@/components/SvgBackground";
 import { useT } from "@/contexts/LanguageContext";
 import { ui } from "@/i18n/ui";
-import patrolCar from "@/assets/patrol_call.gif";
+import patrolCar from "@/assets/patrol_call.webp";
 import dial112Logo from "@/assets/dial100.png";
 
 const DIAL_SEQUENCE = ["1", "1", "2"];
