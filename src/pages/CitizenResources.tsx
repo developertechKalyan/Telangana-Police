@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import type { IconType } from "react-icons";
 import { FaCircleQuestion, FaCircleCheck, FaBan, FaBookOpen, FaChildren, FaVideo, FaCalendarDays } from "react-icons/fa6";
-import { MotionSection, StaggerGroup, staggerItem } from "@/components/MotionSection";
+import { MotionSection, StaggerGroup } from "@/components/MotionSection";
+import { staggerItem } from "@/components/motionVariants";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { Accordion } from "@/components/ui/Accordion";
 import { faqs, mythsFacts } from "@/data/faqs";

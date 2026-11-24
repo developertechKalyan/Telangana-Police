@@ -38,7 +38,8 @@ import {
   LuTrendingUp,
   LuLayoutGrid,
 } from "react-icons/lu";
-import { MotionSection, StaggerGroup, staggerItem } from "@/components/MotionSection";
+import { MotionSection, StaggerGroup } from "@/components/MotionSection";
+import { staggerItem } from "@/components/motionVariants";
 import { RadarSweepPattern } from "@/components/SvgBackground";
 import { useWeather } from "@/hooks/useWeather";
 import type { LiveHourlyReading, WeatherStation } from "@/lib/weatherApi";

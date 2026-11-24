@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { FaXmark, FaPlay, FaCamera, FaShieldHalved, FaTrashCan } from "react-icons/fa6";
 import { LuSparkles, LuLoaderCircle } from "react-icons/lu";
-import { MotionSection, StaggerGroup, staggerItem } from "@/components/MotionSection";
+import { MotionSection, StaggerGroup } from "@/components/MotionSection";
+import { staggerItem } from "@/components/motionVariants";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { galleryItems as staticGalleryItems } from "@/data/gallery";
 import { fetchGalleryItems, deleteGalleryItemApi, type ApiGalleryItem } from "@/lib/api";
@@ -72,7 +73,8 @@ interface DisplayItem {
 
 export function Gallery() {
   const t = useT();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const canDelete = isAuthenticated && (user?.role === "admin" || user?.role === "superadmin");
   const [tab, setTab] = useState<Tab>("All Media");
   const [active, setActive] = useState<string | number | null>(null);
   const [dynamicItems, setDynamicItems] = useState<ApiGalleryItem[]>([]);
@@ -282,7 +284,7 @@ export function Gallery() {
                 </button>
 
                 {/* Quick Delete icon for logged-in officers */}
-                {isAuthenticated && item.isDynamic && typeof item.id === "string" && (
+                {canDelete && item.isDynamic && typeof item.id === "string" && (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -363,7 +365,7 @@ export function Gallery() {
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  {isAuthenticated && activeItem.isDynamic && typeof activeItem.id === "string" && (
+                  {canDelete && activeItem.isDynamic && typeof activeItem.id === "string" && (
                     <button
                       onClick={() => handleDeleteDynamic(activeItem.id as string)}
                       disabled={deletingId === activeItem.id}

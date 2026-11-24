@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import type { IconType } from "react-icons";
 import { FaLocationCrosshairs, FaMapPin, FaLocationDot, FaSatelliteDish, FaRoad } from "react-icons/fa6";
-import { MotionSection, StaggerGroup, staggerItem } from "@/components/MotionSection";
+import { MotionSection, StaggerGroup } from "@/components/MotionSection";
+import { staggerItem } from "@/components/motionVariants";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { useT } from "@/contexts/LanguageContext";
 import type { LocalizedText } from "@/i18n/locales";

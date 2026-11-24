@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext } from "react";
 import { DEFAULT_LOCALE, LOCALE_MAP, type Locale, type LocalizedText } from "@/i18n/locales";
 
-const STORAGE_KEY = "mppolice-locale";
+export const STORAGE_KEY = "mppolice-locale";
 
 interface LanguageContextValue {
   locale: Locale;
@@ -9,31 +9,33 @@ interface LanguageContextValue {
   dir: "ltr" | "rtl";
 }
 
-const LanguageContext = createContext<LanguageContextValue | null>(null);
+export const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-function readStoredLocale(): Locale {
+// Script fonts are loaded only when their language is chosen; index.html loads just the Latin fonts.
+const SCRIPT_FONTS: Partial<Record<Locale, string>> = {
+  hi: "Noto+Sans+Devanagari",
+  te: "Noto+Sans+Telugu",
+  gu: "Noto+Sans+Gujarati",
+  ur: "Noto+Nastaliq+Urdu",
+  sd: "Noto+Sans+Arabic",
+};
+
+export function loadScriptFont(locale: Locale) {
+  const family = SCRIPT_FONTS[locale];
+  if (!family || typeof document === "undefined") return;
+  const id = `font-${locale}`;
+  if (document.getElementById(id)) return;
+  const link = document.createElement("link");
+  link.id = id;
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css2?family=${family}:wght@400;500;600;700&display=swap`;
+  document.head.appendChild(link);
+}
+
+export function readStoredLocale(): Locale {
   if (typeof window === "undefined") return DEFAULT_LOCALE;
   const stored = window.localStorage.getItem(STORAGE_KEY);
   return stored && stored in LOCALE_MAP ? (stored as Locale) : DEFAULT_LOCALE;
-}
-
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(readStoredLocale);
-  const dir = LOCALE_MAP[locale].dir;
-
-  useEffect(() => {
-    document.documentElement.lang = locale;
-    document.documentElement.dir = dir;
-  }, [locale, dir]);
-
-  const setLocale = (next: Locale) => {
-    setLocaleState(next);
-    window.localStorage.setItem(STORAGE_KEY, next);
-  };
-
-  const value = useMemo(() => ({ locale, setLocale, dir }), [locale, dir]);
-
-  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
 export function useLanguage() {

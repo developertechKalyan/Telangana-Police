@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -48,8 +48,12 @@ interface BulkFileItem {
   error?: string;
 }
 
+// Must match ALLOWED_MIME_TYPES in backend/src/middleware/upload.ts (no SVG: it can carry scripts).
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
 export function AdminGallery() {
   const { user, logout } = useAuth();
+  const canDelete = user?.role === "admin" || user?.role === "superadmin";
 
   const [items, setItems] = useState<ApiGalleryItem[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
@@ -84,7 +88,7 @@ export function AdminGallery() {
   const bulkInputRef = useRef<HTMLInputElement>(null);
 
   // Load uploaded items
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     setLoadingItems(true);
     try {
       const data = await fetchGalleryItems(activeFilter === "All" ? undefined : activeFilter);
@@ -94,11 +98,11 @@ export function AdminGallery() {
     } finally {
       setLoadingItems(false);
     }
-  };
+  }, [activeFilter]);
 
   useEffect(() => {
     loadItems();
-  }, [activeFilter]);
+  }, [loadItems]);
 
   // Single file selection with 2MB validation
   const handleSingleFileChange = (selectedFile: File | null) => {
@@ -109,8 +113,8 @@ export function AdminGallery() {
       return;
     }
 
-    if (!selectedFile.type.startsWith("image/")) {
-      setError("Unsupported format. Please select an image file (JPEG, PNG, WEBP, GIF, SVG, BMP, HEIC).");
+    if (!ACCEPTED_TYPES.includes(selectedFile.type)) {
+      setError("Unsupported format. Please select a JPEG, PNG, WEBP or GIF image.");
       return;
     }
 
@@ -135,7 +139,7 @@ export function AdminGallery() {
     const newItems: BulkFileItem[] = [];
 
     Array.from(selectedFiles).forEach((f) => {
-      const isImg = f.type.startsWith("image/");
+      const isImg = ACCEPTED_TYPES.includes(f.type);
       const isSizeOk = f.size <= MAX_SIZE;
       const sizeMB = (f.size / (1024 * 1024)).toFixed(2);
 
@@ -383,7 +387,7 @@ export function AdminGallery() {
                     <input
                       ref={singleInputRef}
                       type="file"
-                      accept="image/*"
+                      accept={ACCEPTED_TYPES.join(",")}
                       onChange={(e) => handleSingleFileChange(e.target.files?.[0] || null)}
                       className="hidden"
                     />
@@ -532,7 +536,7 @@ export function AdminGallery() {
                     <input
                       ref={bulkInputRef}
                       type="file"
-                      accept="image/*"
+                      accept={ACCEPTED_TYPES.join(",")}
                       multiple
                       onChange={(e) => handleBulkFilesAdd(e.target.files)}
                       className="hidden"
@@ -736,7 +740,8 @@ export function AdminGallery() {
                           )}
                         </div>
 
-                        {/* Quick Delete Overlay Button */}
+                        {/* Quick Delete Overlay Button (admins only; the server refuses officers) */}
+                        {canDelete && (
                         <button
                           onClick={() => setDeleteId(item._id)}
                           title="Delete image permanently"
@@ -744,6 +749,7 @@ export function AdminGallery() {
                         >
                           <FaTrashCan size={11} />
                         </button>
+                        )}
                       </div>
 
                       <div className="p-3.5">
@@ -755,12 +761,14 @@ export function AdminGallery() {
                         </p>
                         <div className="mt-3 flex items-center justify-between border-t border-navy-800/80 pt-2.5 text-[11px] text-navy-400">
                           <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                          {canDelete && (
                           <button
                             onClick={() => setDeleteId(item._id)}
                             className="flex items-center gap-1 text-red-400 transition-colors hover:text-red-300 font-medium"
                           >
                             <FaTrashCan size={11} /> Delete Image
                           </button>
+                          )}
                         </div>
                       </div>
                     </motion.div>

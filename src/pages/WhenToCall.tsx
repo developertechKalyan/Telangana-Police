@@ -16,7 +16,8 @@ import {
   FaCircleXmark,
 } from "react-icons/fa6";
 import { LuShieldAlert } from "react-icons/lu";
-import { MotionSection, StaggerGroup, staggerItem } from "@/components/MotionSection";
+import { MotionSection, StaggerGroup } from "@/components/MotionSection";
+import { staggerItem } from "@/components/motionVariants";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { situations } from "@/data/situations";
 import { integratedHelplines } from "@/data/helplines";

@@ -12,7 +12,8 @@ cloudinary.config({
 
 export async function uploadToCloudinary(
   buffer: Buffer,
-  folder: string = "mppolice_gallery"
+  folder: string = "mppolice_gallery",
+  imageType: "jpeg" | "png" | "webp" | "gif" = "jpeg"
 ): Promise<UploadApiResponse> {
   // If Cloudinary keys are not set, return a mock response or fallback URL in dev
   if (
@@ -21,14 +22,14 @@ export async function uploadToCloudinary(
     !process.env.CLOUDINARY_API_SECRET
   ) {
     console.warn("⚠️ Cloudinary credentials missing in .env. Converting image to base64 data URI for dev storage.");
-    const base64 = `data:image/jpeg;base64,${buffer.toString("base64")}`;
+    const base64 = `data:image/${imageType};base64,${buffer.toString("base64")}`;
     return {
       public_id: `dev_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       secure_url: base64,
       url: base64,
       width: 1200,
       height: 800,
-      format: "jpg",
+      format: imageType,
       bytes: buffer.length,
       resource_type: "image",
     } as UploadApiResponse;

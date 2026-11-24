@@ -1,7 +1,12 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import { isProduction } from "./security.js";
 
 dotenv.config();
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
 
 export interface SendMailOptions {
   to: string;
@@ -29,17 +34,19 @@ export function createMailTransporter() {
 }
 
 export async function sendOtpEmail(toEmail: string, otp: string, userName?: string): Promise<boolean> {
-  const fromEmail = process.env.BREVO_FROM_EMAIL || "no-reply@mppolice.gov.in";
-  const fromName = process.env.BREVO_FROM_NAME || "MP Police Dial 112 Portal";
+  const fromEmail = process.env.BREVO_FROM_EMAIL || "no-reply@tspolice.gov.in";
+  const fromName = process.env.BREVO_FROM_NAME || "Telangana Police Dial 112 Portal";
 
   const transporter = createMailTransporter();
+  const safeName = escapeHtml(userName || "Officer");
+  const safeEmail = escapeHtml(toEmail);
 
   const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Password Reset OTP - MP Police Portal</title>
+  <title>Password Reset OTP - Telangana Police Dial 112</title>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0b1528; margin: 0; padding: 20px; color: #f1f5f9; }
     .container { max-width: 540px; margin: 0 auto; background-color: #111e38; border: 1px solid #1e3a8a; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
@@ -57,15 +64,15 @@ export async function sendOtpEmail(toEmail: string, otp: string, userName?: stri
   <div class="container">
     <div class="header">
       <div class="badge">Official Security Communication</div>
-      <h1 class="title">TELANGANA / MP POLICE DIAL 112</h1>
+      <h1 class="title">TELANGANA POLICE DIAL 112</h1>
       <p style="margin: 6px 0 0 0; color: #94a3b8; font-size: 13px;">Authorized Personnel Authentication System</p>
     </div>
     <div class="content">
       <p style="color: #e2e8f0; font-size: 15px; margin-top: 0;">
-        Hello <strong>${userName || "Officer"}</strong>,
+        Hello <strong>${safeName}</strong>,
       </p>
       <p style="color: #94a3b8; font-size: 14px;">
-        A request has been initiated to reset the password for your authorized administrator account (<code>${toEmail}</code>).
+        A request has been initiated to reset the password for your authorized administrator account (<code>${safeEmail}</code>).
       </p>
       <div class="otp-box">
         <div style="color: #94a3b8; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Your One-Time Password (OTP)</div>
@@ -88,8 +95,13 @@ export async function sendOtpEmail(toEmail: string, otp: string, userName?: stri
 </html>
   `;
 
-  // If user hasn't supplied real SMTP credentials yet, print to console so development works seamlessly
+  // Without SMTP credentials: in development print the code so the flow can be tested;
+  // in production never write a reset code to the logs.
   if (!process.env.BREVO_SMTP_USER || !process.env.BREVO_SMTP_PASS) {
+    if (isProduction()) {
+      console.error("❌ BREVO_SMTP_USER / BREVO_SMTP_PASS are not set; password reset emails cannot be sent.");
+      return false;
+    }
     console.log("==================================================================");
     console.log(`📧 [BREVO MAIL SIMULATION] (Set BREVO_SMTP_USER & PASS in .env for real delivery)`);
     console.log(`➡️ To: ${toEmail}`);
@@ -103,7 +115,8 @@ export async function sendOtpEmail(toEmail: string, otp: string, userName?: stri
     const info = await transporter.sendMail({
       from: `"${fromName}" <${fromEmail}>`,
       to: toEmail,
-      subject: `[CONFIDENTIAL] Security Reset OTP: ${otp} - Police Dial 112`,
+      // Keep the code out of the subject line, which shows on lock screens and notifications.
+      subject: "Your password reset code - Telangana Police Dial 112",
       text: `Your Police Portal password reset code is: ${otp}. This code is valid for 10 minutes.`,
       html: htmlContent,
     });
@@ -111,8 +124,10 @@ export async function sendOtpEmail(toEmail: string, otp: string, userName?: stri
     return true;
   } catch (error) {
     console.error(`❌ Failed to send email via Brevo SMTP: ${(error as Error).message}`);
-    // Output OTP in console so the developer can continue testing even if mail credentials failed
-    console.log(`🔑 Fallback Console OTP for ${toEmail}: [ ${otp} ]`);
+    if (!isProduction()) {
+      // Development only: lets the developer keep testing when mail delivery fails.
+      console.log(`🔑 Fallback Console OTP for ${toEmail}: [ ${otp} ]`);
+    }
     return false;
   }
 }

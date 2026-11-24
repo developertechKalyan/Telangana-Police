@@ -29,10 +29,23 @@ const otpLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Limits code checks per IP. Each issued code also locks after 5 wrong guesses (see authController),
+// so a 6-digit code can't be brute-forced from many IPs either.
+const otpCheckLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: {
+    success: false,
+    message: "Too many verification attempts from this IP. Please try again after 15 minutes.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 router.post("/login", loginLimiter, login);
 router.post("/forgot-password", otpLimiter, forgotPassword);
-router.post("/verify-otp", verifyOtp);
-router.post("/reset-password", resetPassword);
+router.post("/verify-otp", otpCheckLimiter, verifyOtp);
+router.post("/reset-password", otpCheckLimiter, resetPassword);
 router.get("/me", protect, getMe);
 
 export default router;

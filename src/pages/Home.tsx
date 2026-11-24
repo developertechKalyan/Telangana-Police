@@ -29,7 +29,8 @@ import {
   LuPhoneCall,
   LuX,
 } from "react-icons/lu";
-import { MotionSection, StaggerGroup, staggerItem } from "@/components/MotionSection";
+import { MotionSection, StaggerGroup } from "@/components/MotionSection";
+import { staggerItem } from "@/components/motionVariants";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { StatCard } from "@/components/ui/StatCard";
 import { RadarSweepPattern, SignalWavesPattern } from "@/components/SvgBackground";
@@ -46,7 +47,8 @@ import { useT } from "@/contexts/LanguageContext";
 import { ui } from "@/i18n/ui";
 
 import policeLogo from "@/assets/logo.png";
-import heroVideo from "@/assets/videos/English_Dial 112_Sub_01.mp4";
+import heroVideo720 from "@/assets/videos/dial112-hero-720.mp4";
+import heroVideo540 from "@/assets/videos/dial112-hero-540.mp4";
 
 const impactIcons = [FaShieldHalved, FaCarBurst, FaChildReaching, FaPersonCircleExclamation];
 
@@ -140,6 +142,10 @@ function VideoHero() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
   const [videoFailed, setVideoFailed] = useState(false);
+  // Phones get the smaller 540p file (about 15 MB) instead of the 720p one (about 22 MB).
+  const [heroVideo] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? heroVideo540 : heroVideo720,
+  );
 
   // React doesn't reliably apply the `muted` attribute, and browsers block
   // autoplay unless the video is muted, so set it on the element directly.
@@ -507,9 +513,13 @@ function GalleryCarousel({ items: rawItems }: { items: GalleryItem[] }) {
     wrapper.addEventListener("keydown", onKeyDown);
     wrapper.addEventListener("mouseenter", onMouseEnter);
     wrapper.addEventListener("mouseleave", onMouseLeave);
-    prevBtnRef.current?.addEventListener("click", onPrevClick);
-    nextBtnRef.current?.addEventListener("click", onNextClick);
-    dotRefs.current.forEach((dot, i) => dot?.addEventListener("click", dotClickHandlers[i]));
+    // Capture the button nodes now so cleanup removes listeners from the same elements.
+    const prevBtn = prevBtnRef.current;
+    const nextBtn = nextBtnRef.current;
+    const dots = [...dotRefs.current];
+    prevBtn?.addEventListener("click", onPrevClick);
+    nextBtn?.addEventListener("click", onNextClick);
+    dots.forEach((dot, i) => dot?.addEventListener("click", dotClickHandlers[i]));
 
     raf = requestAnimationFrame(tick);
     startAutoplay();
@@ -523,9 +533,9 @@ function GalleryCarousel({ items: rawItems }: { items: GalleryItem[] }) {
       wrapper.removeEventListener("keydown", onKeyDown);
       wrapper.removeEventListener("mouseenter", onMouseEnter);
       wrapper.removeEventListener("mouseleave", onMouseLeave);
-      prevBtnRef.current?.removeEventListener("click", onPrevClick);
-      nextBtnRef.current?.removeEventListener("click", onNextClick);
-      dotRefs.current.forEach((dot, i) => dot?.removeEventListener("click", dotClickHandlers[i]));
+      prevBtn?.removeEventListener("click", onPrevClick);
+      nextBtn?.removeEventListener("click", onNextClick);
+      dots.forEach((dot, i) => dot?.removeEventListener("click", dotClickHandlers[i]));
       cancelAnimationFrame(raf);
       clearAutoplay();
     };

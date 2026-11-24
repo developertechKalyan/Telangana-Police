@@ -9,6 +9,8 @@ export interface IUser extends Document {
   role: "superadmin" | "admin" | "officer";
   resetPasswordOtp?: string;
   resetPasswordExpires?: Date;
+  resetPasswordAttempts: number;
+  passwordChangedAt?: Date;
   isActive: boolean;
   lastLogin?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -52,6 +54,16 @@ const UserSchema = new Schema<IUser>(
       type: Date,
       select: false,
     },
+    // Wrong reset-code guesses since the last code was issued; the code is voided after MAX_OTP_ATTEMPTS.
+    resetPasswordAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+    // Login tokens issued before this moment are rejected (set whenever the password changes).
+    passwordChangedAt: {
+      type: Date,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -71,6 +83,7 @@ UserSchema.pre("save", async function (next) {
   try {
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
+    if (!this.isNew) this.passwordChangedAt = new Date();
     next();
   } catch (err) {
     next(err as Error);

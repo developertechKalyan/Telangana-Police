@@ -18,7 +18,8 @@ import {
   FaTruckMedical,
   FaFireExtinguisher,
 } from "react-icons/fa6";
-import { MotionSection, StaggerGroup, staggerItem } from "@/components/MotionSection";
+import { MotionSection, StaggerGroup } from "@/components/MotionSection";
+import { staggerItem } from "@/components/motionVariants";
 import { EmergencyButton } from "@/components/EmergencyButton";
 import { contactInfo } from "@/data/contact";
 import { EMERGENCY_NUMBER, socialLinks } from "@/data/nav";
@@ -37,12 +38,12 @@ const HERO_TITLE_HIGHLIGHT = lt("Touch", "संपर्क", "సంప్ర�
 const HERO_TITLE_SUFFIX = lt("with Telangana Police", "करें", "పొందండి", "રહો", "کریں", "ڪريو");
 
 const HERO_SUBTITLE = lt(
-  "Reach Telangana Police Emergency Services 24/7 via phone, email, social media, or our Hyderabad headquarters. We're here to serve 3.5 crore residents across all states.",
-  "फोन, ईमेल, सोशल मीडिया या हमारे हैदराबाद मुख्यालय के माध्यम से तेलंगाना पुलिस आपातकालीन सेवाओं तक 24/7 पहुंचें। हम सभी राज्यों में 3.5 करोड़ निवासियों की सेवा के लिए यहां हैं।",
-  "ఫోన్, ఇమెయిల్, సోషల్ మీడియా లేదా మా హైదరాబాద్ ప్రధాన కార్యాలయం ద్వారా తెలంగాణ పోలీసు అత్యవసర సేవలను 24/7 అందుకోండి. మేము అన్ని రాష్ట్రాల్లోని 3.5 కోట్ల నివాసితులకు సేవ చేయడానికి ఇక్కడ ఉన్నాము.",
-  "ફોન, ઈમેલ, સોશિયલ મીડિયા અથવા અમારા હૈદરાબાદ મુખ્યાલય દ્વારા તેલંગાણા પોલીસ કટોકટી સેવાઓ સુધી 24/7 પહોંચો. અમે તમામ રાજ્યોમાં 3.5 કરોડ રહેવાસીઓની સેવા માટે અહીં છીએ.",
-  "فون، ای میل، سوشل میڈیا یا ہمارے حیدرآباد ہیڈکوارٹرز کے ذریعے تلنگانہ پولیس ایمرجنسی خدمات تک 24/7 رسائی حاصل کریں۔ ہم تمام ریاستوں میں 3.5 کروڑ رہائشیوں کی خدمت کے لیے یہاں موجود ہیں۔",
-  "فون، اي ميل، سوشل ميڊيا يا اسان جي حيدرآباد هيڊڪوارٽرز ذريعي تلنگانا پوليس ايمرجنسي خدمتن تائين 24/7 رسائي ڪريو. اسين سمورين رياستن ۾ 3.5 ڪروڙ رهاڪن جي خدمت لاءِ هتي آهيون.",
+  "Reach Telangana Police Emergency Services 24/7 via phone, email, social media, or our Hyderabad headquarters. We're here to serve 3.5 crore residents across all 33 districts.",
+  "फोन, ईमेल, सोशल मीडिया या हमारे हैदराबाद मुख्यालय के माध्यम से तेलंगाना पुलिस आपातकालीन सेवाओं तक 24/7 पहुंचें। हम सभी 33 ज़िलों में 3.5 करोड़ निवासियों की सेवा के लिए यहां हैं।",
+  "ఫోన్, ఇమెయిల్, సోషల్ మీడియా లేదా మా హైదరాబాద్ ప్రధాన కార్యాలయం ద్వారా తెలంగాణ పోలీసు అత్యవసర సేవలను 24/7 అందుకోండి. మేము అన్ని 33 జిల్లాల్లోని 3.5 కోట్ల నివాసితులకు సేవ చేయడానికి ఇక్కడ ఉన్నాము.",
+  "ફોન, ઈમેલ, સોશિયલ મીડિયા અથવા અમારા હૈદરાબાદ મુખ્યાલય દ્વારા તેલંગાણા પોલીસ કટોકટી સેવાઓ સુધી 24/7 પહોંચો. અમે તમામ 33 જિલ્લાઓમાં 3.5 કરોડ રહેવાસીઓની સેવા માટે અહીં છીએ.",
+  "فون، ای میل، سوشل میڈیا یا ہمارے حیدرآباد ہیڈکوارٹرز کے ذریعے تلنگانہ پولیس ایمرجنسی خدمات تک 24/7 رسائی حاصل کریں۔ ہم تمام 33 اضلاع میں 3.5 کروڑ رہائشیوں کی خدمت کے لیے یہاں موجود ہیں۔",
+  "فون، اي ميل، سوشل ميڊيا يا اسان جي حيدرآباد هيڊڪوارٽرز ذريعي تلنگانا پوليس ايمرجنسي خدمتن تائين 24/7 رسائي ڪريو. اسين سڀني 33 ضلعن ۾ 3.5 ڪروڙ رهاڪن جي خدمت لاءِ هتي آهيون.",
 );
 
 const QUICK_EMERGENCY_LABEL = lt("Emergency", "आपातकाल", "అత్యవసరం", "કટોકટી", "ایمرجنسی", "ايمرجنسي");
@@ -429,6 +430,11 @@ export function Contact() {
     },
   ];
 
+  // Email rows only appear once an official address is set in data/contact.ts.
+  const emailRows: ChannelRow[] = contactInfo.email
+    ? [{ icon: FaEnvelope, label: contactInfo.email, href: `mailto:${contactInfo.email}` }]
+    : [];
+
   const channelCards: { icon: IconType; accent: string; iconBg: string; title: string; rows: ChannelRow[] }[] = [
     {
       icon: FaLocationDot,
@@ -437,7 +443,7 @@ export function Contact() {
       title: t(FROM_TELANGANA_TITLE),
       rows: [
         { icon: FaPhone, label: `${EMERGENCY_NUMBER}${t(EMERGENCY_SUFFIX_SHORT)}`, href: `tel:${EMERGENCY_NUMBER}` },
-        { icon: FaEnvelope, label: contactInfo.email, href: `mailto:${contactInfo.email}` },
+        ...emailRows,
         { icon: FaFacebook, label: t(FACEBOOK_PAGE_LABEL), href: facebookHref },
         { icon: FaXTwitter, label: t(TWITTER_PAGE_LABEL), href: twitterHref },
       ],
@@ -449,7 +455,7 @@ export function Contact() {
       title: t(FROM_OUTSIDE_TELANGANA_TITLE),
       rows: [
         { icon: FaPhone, label: "040-112", href: "tel:040112" },
-        { icon: FaEnvelope, label: contactInfo.email, href: `mailto:${contactInfo.email}` },
+        ...emailRows,
         { icon: FaFacebook, label: t(FACEBOOK_PAGE_LABEL), href: facebookHref },
         { icon: FaXTwitter, label: t(TWITTER_PAGE_LABEL), href: twitterHref },
       ],
@@ -462,7 +468,7 @@ export function Contact() {
       rows: [
         { icon: FaLocationDot, label: t(contactInfo.commandCenter) },
         { icon: FaPhone, label: `${EMERGENCY_NUMBER}${t(EMERGENCY_SUFFIX_SHORT)}`, href: `tel:${EMERGENCY_NUMBER}` },
-        { icon: FaEnvelope, label: contactInfo.email, href: `mailto:${contactInfo.email}` },
+        ...emailRows,
         { icon: FaGlobe, label: "dial100.tspolice.gov.in", href: "https://dial100.tspolice.gov.in" },
         { icon: FaClock, label: t(contactInfo.availability) },
       ],
@@ -569,12 +575,14 @@ export function Contact() {
               </span>
               <h3 className="mt-4 font-display font-semibold text-navy-900 dark:text-navy-50">{t(GRIEVANCE_TITLE)}</h3>
               <p className="mt-2 text-sm leading-relaxed text-navy-500 dark:text-navy-400">{t(GRIEVANCE_BODY)}</p>
-              <a
-                href={`mailto:${contactInfo.email}?subject=Service%20Grievance`}
-                className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400"
-              >
-                {t(GRIEVANCE_CTA)}
-              </a>
+              {contactInfo.email && (
+                <a
+                  href={`mailto:${contactInfo.email}?subject=Service%20Grievance`}
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400"
+                >
+                  {t(GRIEVANCE_CTA)}
+                </a>
+              )}
             </motion.div>
 
             <motion.div
@@ -597,12 +605,14 @@ export function Contact() {
               </span>
               <h3 className="mt-4 font-display font-semibold text-navy-900 dark:text-navy-50">{t(PRESS_TITLE)}</h3>
               <p className="mt-2 text-sm leading-relaxed text-navy-500 dark:text-navy-400">{t(PRESS_BODY)}</p>
-              <a
-                href={`mailto:${contactInfo.email}?subject=Press%20Inquiry`}
-                className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400"
-              >
-                {t(QUICK_EMAIL_LABEL)}
-              </a>
+              {contactInfo.email && (
+                <a
+                  href={`mailto:${contactInfo.email}?subject=Press%20Inquiry`}
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400"
+                >
+                  {t(QUICK_EMAIL_LABEL)}
+                </a>
+              )}
             </motion.div>
           </StaggerGroup>
         </div>

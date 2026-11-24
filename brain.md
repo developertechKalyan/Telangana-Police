@@ -1,5 +1,13 @@
 # brain.md — Architecture & Design Decisions
 
+> **Status note (2026-11-13):** this file was written while the project was a rebuild of the Madhya Pradesh
+> Dial 112 site. The project is now the **Telangana Police Dial 112** website (see `handoff.md` → "What this
+> project is"). The stack, design system and motion decisions below still apply; references to MP Police,
+> Bhopal, 55 districts and the MP WhatsApp number are history, not current content. Sections 6 and 10
+> ("no backend", "no auth / no uploads") are superseded — there is now a Node API with admin login and gallery
+> uploads plus live weather, all in one Node server (the Python/FastAPI weather service described in §1 was
+> merged into `backend/src/services/weather.ts` on 2026-11-13). Current languages: English, Hindi, Telugu.
+
 > The "why" behind the build. Read this before making any structural/stack decision so we don't re-litigate settled choices. `structure.md` is WHAT we're building; this is HOW; `handoff.md` is the task tracker for the CURRENT state of the build.
 
 ## 1. Goal
